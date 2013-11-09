@@ -1,4 +1,4 @@
-﻿#region Copyright (c) 2013 Jens Thiel, http://thielj.github.io/MetroFramework
+#region Copyright (c) 2013 Jens Thiel, http://thielj.github.io/MetroFramework
 /*
  
 MetroFramework - Windows Modern UI for .NET WinForms applications
@@ -40,6 +40,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Design;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Permissions;
 using System.Windows.Forms;
@@ -56,7 +57,8 @@ namespace MetroFramework.Controls
     [Editor("MetroFramework.Design.MetroTabPageCollectionEditor, " + AssemblyRef.MetroFrameworkDesignSN, typeof(UITypeEditor))]
     public class MetroTabPageCollection : TabControl.TabPageCollection
     {
-        public MetroTabPageCollection(MetroTabControl owner) : base(owner)
+        public MetroTabPageCollection(MetroTabControl owner)
+            : base(owner)
         { }
     }
 
@@ -73,7 +75,7 @@ namespace MetroFramework.Controls
         private bool bUpDown = false;
 
         private const int TAB_BOTTOM_BORDER_HEIGHT = 3;
- 
+
         private ContentAlignment textAlign = ContentAlignment.MiddleLeft;
         [DefaultValue(ContentAlignment.MiddleLeft)]
         [Category(MetroDefaults.CatAppearance)]
@@ -112,8 +114,8 @@ namespace MetroFramework.Controls
         public MetroTabControl()
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
-                     // ControlStyles.AllPaintingInWmPaint |
-                     // ControlStyles.ResizeRedraw |
+            // ControlStyles.AllPaintingInWmPaint |
+            // ControlStyles.ResizeRedraw |
             UseStyleColor();
             UseFontStyle();
             //Padding = new Point(6, 8); 
@@ -130,7 +132,7 @@ namespace MetroFramework.Controls
         {
             try
             {
-                if (TabPages ==  null || TabPages.Count == 0 || !(TabPages[SelectedIndex] is MetroTabPage))
+                if (TabPages == null || TabPages.Count == 0 || !(TabPages[SelectedIndex] is MetroTabPage))
                 {
                     e.Graphics.Clear(EffectiveBackColor);
                     return;
@@ -171,9 +173,9 @@ namespace MetroFramework.Controls
 
         private void DrawTabBottomBorder(int index, Graphics graphics)
         {
-            using (Brush bgBrush = new SolidBrush( GetThemeColor("BorderColor")))
+            using (Brush bgBrush = new SolidBrush(GetThemeColor("BorderColor")))
             {
-                Rectangle borderRectangle = new Rectangle(DisplayRectangle.X, GetTabRect(index).Bottom + 2 - TAB_BOTTOM_BORDER_HEIGHT, 
+                Rectangle borderRectangle = new Rectangle(DisplayRectangle.X, GetTabRect(index).Bottom + 2 - TAB_BOTTOM_BORDER_HEIGHT,
                     DisplayRectangle.Width, TAB_BOTTOM_BORDER_HEIGHT);
 
                 graphics.FillRectangle(bgBrush, borderRectangle);
@@ -188,8 +190,8 @@ namespace MetroFramework.Controls
                 //Size textAreaRect = MeasureText(TabPages[index].Text);
                 Rectangle borderRectangle = new Rectangle(
                     selectedTabRect.X + ((index == 0) ? 2 : 0),
-                    selectedTabRect.Bottom + 2 - TAB_BOTTOM_BORDER_HEIGHT, 
-                    selectedTabRect.Width + ((index == 0) ? 0 : 2), 
+                    selectedTabRect.Bottom + 2 - TAB_BOTTOM_BORDER_HEIGHT,
+                    selectedTabRect.Width + ((index == 0) ? 0 : 2),
                     TAB_BOTTOM_BORDER_HEIGHT);
                 graphics.FillRectangle(selectionBrush, borderRectangle);
             }
@@ -243,7 +245,7 @@ namespace MetroFramework.Controls
             using (Brush b = new SolidBrush(GetThemeColor("BorderColor")))
             using (GraphicsPath gp = new GraphicsPath(FillMode.Winding))
             {
-                PointF[] pts = {new PointF(6, 6), new PointF(16, 0), new PointF(16, 12)};
+                PointF[] pts = { new PointF(6, 6), new PointF(16, 0), new PointF(16, 12) };
                 gp.AddLines(pts);
                 graphics.FillPath(b, gp);
 
@@ -303,7 +305,7 @@ namespace MetroFramework.Controls
 
         private new Rectangle GetTabRect(int index)
         {
-            return index < 0 ? new Rectangle() :  base.GetTabRect(index);
+            return index < 0 ? new Rectangle() : base.GetTabRect(index);
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -329,11 +331,15 @@ namespace MetroFramework.Controls
                     }
                 }
             }
-            
+
             base.OnMouseWheel(e);
         }
 
         #endregion
+
+
+
+
 
         // The below is possibly (c) Oscar Londono
         // http://www.codeproject.com/Articles/12185/A-NET-Flat-TabControl-CustomDraw
@@ -343,26 +349,27 @@ namespace MetroFramework.Controls
         protected override void OnCreateControl()
         {
             base.OnCreateControl();
+            this.OnFontChanged(EventArgs.Empty);
             FindUpDown();
         }
 
         protected override void OnControlAdded(ControlEventArgs e)
         {
- 	         base.OnControlAdded(e);
-             FindUpDown();
-             UpdateUpDown();
-        }
-
-        protected override void OnControlRemoved(ControlEventArgs e)
-        {
- 	        base.OnControlRemoved(e);
+            base.OnControlAdded(e);
             FindUpDown();
             UpdateUpDown();
         }
 
-        protected override void  OnSelectedIndexChanged(EventArgs e)
+        protected override void OnControlRemoved(ControlEventArgs e)
         {
- 	        base.OnSelectedIndexChanged(e);
+            base.OnControlRemoved(e);
+            FindUpDown();
+            UpdateUpDown();
+        }
+
+        protected override void OnSelectedIndexChanged(EventArgs e)
+        {
+            base.OnSelectedIndexChanged(e);
             UpdateUpDown();
             //Invalidate();
         }
@@ -421,7 +428,7 @@ namespace MetroFramework.Controls
                         using (Graphics g = Graphics.FromHdc(hDC))
                             DrawUpDown(g);
                     }
-                    finally 
+                    finally
                     {
                         WinApi.ReleaseDC(scUpDown.Handle, hDC);
                     }
@@ -433,6 +440,25 @@ namespace MetroFramework.Controls
             }
 
             return 0;
+        }
+
+
+        //send font change to properly resize tab page header rects
+        //http://www.codeproject.com/Articles/13305/Painting-Your-Own-Tabs?msg=2707590#xx2707590xx
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+
+        private const int WM_SETFONT = 0x30;
+        private const int WM_FONTCHANGE = 0x1d;
+
+        [SecuritySafeCritical]
+        protected override void OnFontChanged(EventArgs e)
+        {
+            base.OnFontChanged(e);
+            IntPtr hFont = this.EffectiveFont.ToHfont();
+            SendMessage(this.Handle, WM_SETFONT, hFont, (IntPtr)(-1));
+            SendMessage(this.Handle, WM_FONTCHANGE, IntPtr.Zero, IntPtr.Zero);
+            this.UpdateStyles();
         }
 
         #endregion
