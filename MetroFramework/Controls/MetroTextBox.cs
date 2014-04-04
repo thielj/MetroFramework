@@ -86,6 +86,17 @@ namespace MetroFramework.Controls
             get { return displayIcon; }
             set { displayIcon = value; Invalidate(); }
         }
+        
+        /// <summary>
+        /// Set the Textbox Charcter Casing
+        /// </summary>
+        [Browsable(true)]
+        [DefaultValue(CharacterCasing.Normal)]
+        public CharacterCasing CharcterCasing
+        {
+            get { return baseTextBox.CharacterCasing; }
+            set { baseTextBox.CharacterCasing = value; }
+        }
 
         private Size IconSize 
         {
