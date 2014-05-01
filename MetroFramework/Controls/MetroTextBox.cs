@@ -418,7 +418,9 @@ namespace MetroFramework.Controls
             baseTextBox.BackColor = EffectiveBackColor;
             baseTextBox.ForeColor = EffectiveForeColor;
             baseTextBox.Font = EffectiveFont;
-
+            baseTextBox.Cursor = base.Cursor; // Fix to prevent VS/App crashing when changing the cursor 01/May/2014
+            
+            
             if (displayIcon)
             {
                 Point textBoxLocation = new Point(IconSize.Width + 4, 3);
